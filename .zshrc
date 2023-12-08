@@ -20,12 +20,25 @@ source $_consh/plugins/zsh-histdb/sqlite-history.zsh
 source $_consh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source $_consh/plugins/powerlevel10k/powerlevel10k.zsh-theme
 ###
+#
+# Histdb and autosuggestions strategy
+_zsh_autosuggest_strategy_histdb_top_here() {
+    local query="select commands.argv from
+history left join commands on history.command_id = commands.rowid
+left join places on history.place_id = places.rowid
+where places.dir LIKE '$(sql_escape $PWD)%'
+and commands.argv LIKE '$(sql_escape $1)%'
+group by commands.argv order by count(*) desc limit 1"
+    suggestion=$(_histdb_query "$query")
+}
+
+ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
 
 export CLICOLOR=1
 export GPG_TTY=$(tty)
 export PNPM_HOME="$HOME/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
-export PATH=~/.npm-global/bin:$PATH
+export PATH="$HOME/.npm-global/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export NPM_TOKEN="npm_***"
 
@@ -79,4 +92,3 @@ HISTSIZE=10000                  # lines of history to maintain memory
 SAVEHIST=1000                  # lines of history to maintain in history file.
 setopt HIST_EXPIRE_DUPS_FIRST  # allow dups, but expire old ones when I hit HISTSIZE
 setopt EXTENDED_HISTORY        # save timestamp and runtime information
-
