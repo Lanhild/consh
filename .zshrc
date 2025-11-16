@@ -1,13 +1,4 @@
 #! /bin/zsh
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 typeset -A _consh
 _consh="$HOME/.zsh"
@@ -16,36 +7,32 @@ _consh="$HOME/.zsh"
 # Plugins
 ###
 source $_consh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source $_consh/plugins/zsh-histdb/sqlite-history.zsh
 source $_consh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source $_consh/plugins/powerlevel10k/powerlevel10k.zsh-theme
-###
-#
-# Histdb and autosuggestions strategy
-_zsh_autosuggest_strategy_histdb_top_here() {
-    local query="select commands.argv from
-history left join commands on history.command_id = commands.rowid
-left join places on history.place_id = places.rowid
-where places.dir LIKE '$(sql_escape $PWD)%'
-and commands.argv LIKE '$(sql_escape $1)%'
-group by commands.argv order by count(*) desc limit 1"
-    suggestion=$(_histdb_query "$query")
-}
-
-ZSH_AUTOSUGGEST_STRATEGY=histdb_top_here
 
 export CLICOLOR=1
 export GPG_TTY=$(tty)
 export PNPM_HOME="$HOME/.local/share/pnpm"
+export GOPATH="$HOME/.go-global"
 export PATH="$PNPM_HOME:$PATH"
 export PATH="$HOME/.npm-global/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-export NPM_TOKEN="npm_***"
+export PATH="$HOME/.go-global/go/bin:$PATH"
+export PATH="$HOME/.go-global/bin:$PATH"
+export PATH="$HOME/.act:$PATH"
+export GHCR_PAT="ghp_***"
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export SSH_ASKPASS=ksshaskpass
+export SSH_ASKPASS_REQUIRE=prefer
 
 alias grep='grep --color=always'
 alias lsa='ls -lah --color'
 alias l='ls --color'
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+alias dive="docker run -ti --rm  -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive"
+alias oras="docker run -ti --rm -v $(pwd):/workspace ghcr.io/oras-project/oras:v1.2.0"
+alias claude="$HOME/.claude/local/claude"
+alias pandock="docker run --rm -v \"$(pwd):/data\" -u $(id -u):$(id -g) pandoc/extra"
 
 autoload -Uz add-zsh-hook
 autoload -Uz compinit
@@ -75,7 +62,7 @@ bindkey '^P' up-history
 bindkey '^N' down-history
 bindkey '^?' backward-delete-char
 bindkey '^h' backward-delete-char
-bindkey '^w' backward-kill-word
+bindkey '^H' backward-kill-word
 bindkey '^r' history-incremental-search-backward
 bindkey -M viins '^a'    beginning-of-line
 bindkey -M viins '^e'    end-of-line
@@ -85,6 +72,8 @@ bindkey -M viins '^u'    backward-kill-line
 zle -N edit-command-line
 bindkey -M viins '^xe'  edit-command-line
 bindkey -M viins '^x^e'  edit-command-line
+bindkey '^[[1;5C' forward-word
+bindkey '^[[1;5D' backward-word
 
 HISTFILE=$HOME/.zsh_history       # enable history saving on shell exit
 setopt SHARE_HISTORY           # share history between sessions
@@ -92,3 +81,14 @@ HISTSIZE=10000                  # lines of history to maintain memory
 SAVEHIST=1000                  # lines of history to maintain in history file.
 setopt HIST_EXPIRE_DUPS_FIRST  # allow dups, but expire old ones when I hit HISTSIZE
 setopt EXTENDED_HISTORY        # save timestamp and runtime information
+
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "/home/lanhild/.bun/_bun" ] && source "/home/lanhild/.bun/_bun"
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
+eval "$(starship init zsh)"
